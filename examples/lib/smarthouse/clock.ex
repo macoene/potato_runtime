@@ -15,7 +15,7 @@ defmodule Potato.Smarthouse.Clock do
     # Node descriptor
     nd = %{
       hardware: :clock,
-      type: :sensor,
+      type: :clock,
       name: "main clock",
       uuid: ""
     }
@@ -30,9 +30,9 @@ defmodule Potato.Smarthouse.Clock do
 
   def read_time() do
     myself().broadcast
-    |> Observables.Subject.next({:clock, 1})
+    |> Observables.Subject.next({:clock, Enum.random(0..23)})
 
-    :timer.sleep(15000)
+    :timer.sleep(5555)
     read_time()
   end
 end

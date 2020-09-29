@@ -77,10 +77,6 @@ defmodule Potato.Smarthouse.Television do
         |> Obs.filter(fn {:join, v} ->
           v.type == :clock
         end)
-        |> Obs.map(&elem(&1, 1))
-        |> Obs.each(fn nd ->
-          Logger.debug("Joined Clock: #{inspect(nd)}")
-        end)
 
       presenceSensorJoins =
         Net.network()
@@ -97,17 +93,15 @@ defmodule Potato.Smarthouse.Television do
       |> Obs.map(fn {:join, node} ->
         IO.inspect node
         node.broadcast
-        |> Obs.each(fn v ->
-
-          IO.puts(v)
-
-          if v >= 190000 do
+        |> Obs.map(fn {k, v} ->
+          if v >= 19 do
             inTimeWindow(state)
             if get_stored_presence(state) do
               IO.puts("TV On")
             end
           else
             outOfTimeWindow(state)
+            IO.puts("TV Off")
           end
         end)
       end)
@@ -124,6 +118,7 @@ defmodule Potato.Smarthouse.Television do
             end
           else
             noPresence(state)
+            IO.puts("TV Off")
           end
         end)
       end)

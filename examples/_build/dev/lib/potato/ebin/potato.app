@@ -1,0 +1,12 @@
+{application,potato,
+             [{applications,[kernel,stdlib,elixir,logger,observables]},
+              {description,"potato"},
+              {modules,['Elixir.Potato.Application','Elixir.Potato.DSL',
+                        'Elixir.Potato.Network.Broadcast',
+                        'Elixir.Potato.Network.Evaluator',
+                        'Elixir.Potato.Network.Meta',
+                        'Elixir.Potato.Network.Observables',
+                        'Elixir.Potato.PubSub']},
+              {registered,[]},
+              {vsn,"0.1.0"},
+              {mod,{'Elixir.Potato.Application',[]}}]}.
