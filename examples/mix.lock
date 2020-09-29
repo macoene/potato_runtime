@@ -1,0 +1,4 @@
+%{
+  "observables": {:git, "https://github.com/m1dnight/observables", "d4aef85af4e08b6bc6f7c656d9d678b3c29e7cda", [branch: "master"]},
+  "potato": {:git, "https://gitlab.call-cc.be/research/potato_runtime", "77d83e657121db4b440351ff89a6bdfd0d569134", [branch: "master"]},
+}
