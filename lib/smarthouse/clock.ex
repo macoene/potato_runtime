@@ -16,7 +16,8 @@ defmodule Potato.Smarthouse.Clock do
     nd = %{
       hardware: :clock,
       type: :sensor,
-      name: "main clock"
+      name: "main clock",
+      uuid: ""
     }
 
     Potato.Network.Meta.set_local_nd(nd)
@@ -24,9 +25,14 @@ defmodule Potato.Smarthouse.Clock do
 
   def run() do
     init()
+    spawn(fn -> read_time() end)
   end
 
   def read_time() do
-    {Node.self(), DateTime.utc_now()}
+    myself().broadcast
+    |> Observables.Subject.next({:clock, 1})
+
+    :timer.sleep(15000)
+    read_time()
   end
 end

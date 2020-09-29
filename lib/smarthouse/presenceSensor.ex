@@ -89,8 +89,10 @@ defmodule Potato.Smarthouse.PresenceSensor do
       c = get_value(presenceCounter)
       if c > 0 do 
         IO.puts("People are home")
+        |> Observables.Subject.next({:presenceSensor, true})
       else
         IO.puts("No ones home")
+        |> Observables.Subject.next({:presenceSensor, false})
       end
     end)
 
@@ -102,8 +104,10 @@ defmodule Potato.Smarthouse.PresenceSensor do
       c = get_value(presenceCounter)
       if c > 0 do 
         IO.puts("People are home")
+        |> Observables.Subject.next({:presenceSensor, true})
       else
         IO.puts("No one is home")
+        |> Observables.Subject.next({:presenceSensor, false})
       end
     end)
 

@@ -10,19 +10,17 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :potato, key: :value
+#     config :potato_example, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:potato, :key)
+#     Application.get_env(:potato_example, :key)
 #
 # You can also configure a 3rd-party app:
 #
 #     config :logger, level: :info
 #
-config :logger, :console,
-  format: "\n$time $levelpad$message\n",
-  metadata: [:user_id, :module]
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
