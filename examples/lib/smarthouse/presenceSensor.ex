@@ -3,6 +3,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
   alias Observables.Subject
   alias Potato.Network.Observables, as: Net
   require Logger
+  use Potato.DSL
 
   @doc """
   The presence sensor checks if someone is present in the house, using
@@ -89,9 +90,11 @@ defmodule Potato.Smarthouse.PresenceSensor do
       c = get_value(presenceCounter)
       if c > 0 do 
         IO.puts("People are home")
+        myself().broadcast
         |> Observables.Subject.next({:presenceSensor, true})
       else
         IO.puts("No ones home")
+        myself().broadcast
         |> Observables.Subject.next({:presenceSensor, false})
       end
     end)
@@ -104,9 +107,11 @@ defmodule Potato.Smarthouse.PresenceSensor do
       c = get_value(presenceCounter)
       if c > 0 do 
         IO.puts("People are home")
+        myself().broadcast
         |> Observables.Subject.next({:presenceSensor, true})
       else
         IO.puts("No one is home")
+        myself().broadcast
         |> Observables.Subject.next({:presenceSensor, false})
       end
     end)

@@ -5,7 +5,7 @@ defmodule Potato.Smarthouse.Television do
     require Logger
   
     @doc """
-    The television has to be on between 19h and midnight, but only when 
+    The television has to be on between 18h and midnight, but only when 
     someone is home.
     """
   
@@ -90,7 +90,7 @@ defmodule Potato.Smarthouse.Television do
         IO.inspect node
         node.broadcast
         |> Obs.map(fn {k, v} ->
-          if v >= 19 do
+          if v >= 18 do
             inTimeWindow(state)
             if get_stored_presence(state) do
               IO.puts("TV On")
@@ -107,7 +107,7 @@ defmodule Potato.Smarthouse.Television do
         IO.inspect node
         node.broadcast
         |> Obs.map(fn {k, v} ->
-          if v == 1 do
+          if v do
             presence(state)
             if get_stored_time(state) do
               IO.puts("TV On")

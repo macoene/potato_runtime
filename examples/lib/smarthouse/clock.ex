@@ -29,9 +29,10 @@ defmodule Potato.Smarthouse.Clock do
   end
 
   def read_time() do
+    time = Enum.random(0..23)
     myself().broadcast
-    |> Observables.Subject.next({:clock, Enum.random(0..23)})
-
+    |> Observables.Subject.next({:clock, time})
+    IO.puts("Time: #{time}")
     :timer.sleep(5555)
     read_time()
   end
