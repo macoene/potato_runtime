@@ -84,10 +84,6 @@ defmodule Potato.Smarthouse.Television do
         |> Obs.filter(fn {:join, v} ->
           v.type == :presenceSensor
         end)
-        |> Obs.map(&elem(&1, 1))
-        |> Obs.each(fn nd ->
-          Logger.debug("Joined Presence Sensor: #{inspect(nd)}")
-        end)
 
       clockJoins
       |> Obs.map(fn {:join, node} ->
@@ -110,7 +106,7 @@ defmodule Potato.Smarthouse.Television do
       |> Obs.map(fn {:join, node} ->
         IO.inspect node
         node.broadcast
-        |> Obs.each(fn v ->
+        |> Obs.map(fn {k, v} ->
           if v == 1 do
             presence(state)
             if get_stored_time(state) do

@@ -15,7 +15,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
     # Node descriptor
     nd = %{
       hardware: :presenceSensor,
-      type: :sensor,
+      type: :presenceSensor,
       name: "presence sensor",
       uuid: ""
     }
