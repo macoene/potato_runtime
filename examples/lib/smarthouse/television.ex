@@ -89,7 +89,7 @@ defmodule Potato.Smarthouse.Television do
       |> Obs.map(fn {:join, node} ->
         IO.inspect node
         node.broadcast
-        |> Obs.map(fn {k, v} ->
+        |> Obs.map(fn {_, v} ->
           if v >= 18 do
             inTimeWindow(state)
             if get_stored_presence(state) do
@@ -106,7 +106,7 @@ defmodule Potato.Smarthouse.Television do
       |> Obs.map(fn {:join, node} ->
         IO.inspect node
         node.broadcast
-        |> Obs.map(fn {k, v} ->
+        |> Obs.map(fn {_, v} ->
           if v do
             presence(state)
             if get_stored_time(state) do
