@@ -8,6 +8,7 @@
                         'Elixir.Potato.Publish.Phone',
                         'Elixir.Potato.Publish.Temperature',
                         'Elixir.Potato.Smarthouse.Clock',
+                        'Elixir.Potato.Smarthouse.DayNightSensor',
                         'Elixir.Potato.Smarthouse.KeyReader',
                         'Elixir.Potato.Smarthouse.PresenceSensor',
                         'Elixir.Potato.Smarthouse.Television',
