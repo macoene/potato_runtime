@@ -28,7 +28,7 @@ defmodule Potato.Smarthouse.DayNightSensor do
     def day_night_check() do
       dayNight = Enum.random(1..2)
       myself().broadcast
-      |> Observables.Subject.next({:clock, dayNight})
+      |> Observables.Subject.next({:dayNightSensor, dayNight})
       if dayNight == 1 do
         IO.puts("Day!")
       else
