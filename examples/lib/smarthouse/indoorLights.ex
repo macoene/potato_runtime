@@ -89,12 +89,12 @@ def run() do
     node.broadcast
     |> Obs.map(fn {_, v} ->
       if v == 2 do
-        night(state)
+        setNight(state)
         if get_stored_presence(state) do
           IO.puts("Indoor Lights ON")
         end
       else
-        day(state)
+        setDay(state)
         IO.puts("Indoor Lights OFF")
       end
     end)
