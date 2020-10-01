@@ -12,6 +12,7 @@
                         'Elixir.Potato.Smarthouse.IndoorLights',
                         'Elixir.Potato.Smarthouse.KeyReader',
                         'Elixir.Potato.Smarthouse.MotionSensor',
+                        'Elixir.Potato.Smarthouse.OutdoorLights',
                         'Elixir.Potato.Smarthouse.PresenceSensor',
                         'Elixir.Potato.Smarthouse.Television',
                         'Elixir.PotatoExample']},

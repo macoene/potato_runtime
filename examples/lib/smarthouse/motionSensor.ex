@@ -27,11 +27,13 @@ defmodule Potato.Smarthouse.MotionSensor do
 
   def check_motion() do
     motion = Enum.random(1..4)
-    myself().broadcast
-    |> Observables.Subject.next({:motionSensor, motion})
     if motion == 1 do
+      myself().broadcast
+      |> Observables.Subject.next({:motionSensor, true})
       IO.puts("Motion outside!")
     else
+      myself().broadcast
+      |> Observables.Subject.next({:motionSensor, false})
       IO.puts("No motion detected")
     end
     :timer.sleep(1000)
