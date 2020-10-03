@@ -15,6 +15,8 @@
                         'Elixir.Potato.Smarthouse.OutdoorLights',
                         'Elixir.Potato.Smarthouse.PresenceSensor',
                         'Elixir.Potato.Smarthouse.Television',
+                        'Elixir.Potato.Smarthouse.Thermometer',
+                        'Elixir.Potato.Smarthouse.Windows',
                         'Elixir.PotatoExample']},
               {registered,[]},
               {vsn,"0.1.0"}]}.
