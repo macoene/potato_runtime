@@ -22,7 +22,7 @@ defmodule PotatoExample.MixProject do
   defp deps do
     [
       {:observables, git: "https://github.com/m1dnight/observables", branch: "master"},
-      {:potato, git: "https://gitlab.call-cc.be/research/potato_runtime", branch: "master"}
+      {:potato, path: "/home/teamx11/potato_thesis/potato_runtime/examples/deps/potato"}
     ]
   end
 end
