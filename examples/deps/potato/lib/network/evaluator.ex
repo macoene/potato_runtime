@@ -17,7 +17,7 @@ defmodule Potato.Network.Evaluator do
     deployment_subject
     |> Observables.Obs.map(fn {meta, prog} -> 
       IO.puts(meta)
-      deploy_program(prog) end))
+      deploy_program(prog) end)
 
     {:ok, %{}}
   end
