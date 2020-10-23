@@ -24,7 +24,8 @@ defmodule Potato.DSL do
     broadcast
   end
 
-  defmacro program(do: body) do
+  defmacro program(lease, after_life, do: body) do
+    data = [lease: lease, after_life: after_life]
     quote do
       {__MODULE__, fn -> unquote(body) end}
       #heartbeat = Observables.Subject.create()
