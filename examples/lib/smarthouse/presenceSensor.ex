@@ -72,7 +72,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
 
     sink = Observables.Subject.create()
 
-    prog = program 100, :kill do
+    prog = program 1000, :kill do
       Obs.range(1, :infinity)
       |> Obs.map(fn _ ->
         Potato.Smarthouse.KeyReader.read_key()

@@ -27,14 +27,14 @@ defmodule Potato.DSL do
   defmacro program(lease, after_life, do: body) do
     data = [lease: lease, after_life: after_life]
     quote do
-      {__MODULE__, fn -> unquote(body) end}
-      #heartbeat = Observables.Subject.create()
-      #{%{:lease => 100, :sender => heartbeat}, fn -> unquote(body) end}
- 
-      #Observables.Obs.range(0, :infinity, 100)
-      #|> Observables.Obs.map(fn _ ->
-      #  Observables.Subject.next(heartbeat, "ik leef nog")
-      #end)
+      heartbeat = Observables.Subject.create()
+
+      Observables.Obs.range(0, :infinity, 450)
+      |> Observables.Obs.map(fn _ ->
+        Observables.Subject.next(heartbeat, :alive)
+      end)
+
+      {{unquote(lease), heartbeat}, fn -> unquote(body) end}
  
     end
   end
