@@ -24,6 +24,7 @@ defmodule Potato.DSL do
     broadcast
   end
 
+  
   defmacro program(lease, after_life, do: body) do
     data = [lease: lease, after_life: after_life]
     quote do
