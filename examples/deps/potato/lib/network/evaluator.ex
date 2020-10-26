@@ -17,6 +17,7 @@ defmodule Potato.Network.Evaluator do
     deployment_subject
     |> Observables.Obs.map(fn {{lease, sender}, prog} -> 
       #IO.puts(lease)
+      #inspect lease
       deploy_program(prog) end)
 
     {:ok, %{}}
@@ -36,7 +37,10 @@ defmodule Potato.Network.Evaluator do
   #
 
   def handle_cast({:deploy_program, program}, state) do
-    res = program.()
+    #res = program.()
+    expanded = Code.eval_quoted(program)
+    res = expanded |> elem(0)
+    #IO.inspect expanded
 
     Logger.debug("""
     Program evaluated

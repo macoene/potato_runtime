@@ -27,6 +27,7 @@ defmodule Potato.DSL do
   defmacro program(lease, after_life, do: body) do
     data = [lease: lease, after_life: after_life]
     quote do
+      body = unquote(body) #
       heartbeat = Observables.Subject.create()
 
       Observables.Obs.range(0, :infinity, 450)
@@ -34,7 +35,8 @@ defmodule Potato.DSL do
         Observables.Subject.next(heartbeat, :alive)
       end)
 
-      {{unquote(lease), heartbeat}, fn -> unquote(body) end}
+      #{{unquote(lease), heartbeat}, unquote(body)}
+      {{unquote(lease), heartbeat}, Macro.decompose_call(quote do: body)}
  
     end
   end
