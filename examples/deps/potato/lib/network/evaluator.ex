@@ -36,16 +36,16 @@ defmodule Potato.Network.Evaluator do
   # ------------------------ Callbacks
   #
 
-  def handle_cast({:deploy_program, program}, state) do
+  def handle_cast({:deploy_program, {env, vars, program}}, state) do
     #res = program.()
-    expanded = Code.eval_quoted(program)
+    expanded = Code.eval_quoted(program, vars, env)
     res = expanded |> elem(0)
     #IO.inspect expanded
 
     Logger.debug("""
     Program evaluated
     ======================================
-    Result of evaluation: #{inspect(res)}
+    Result of evaluation: #{inspect(expanded)}
     ======================================
     """)
 

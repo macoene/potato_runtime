@@ -26,6 +26,7 @@ defmodule Potato.Smarthouse.KeyReader do
   end
 
   def read_key() do
+    IO.puts("read")
     # 1 is an entrance signal (= someone comes in), 2 is an exit signal
     # (= someone leaves the house)
     {Node.self(), Enum.random(1..2)}

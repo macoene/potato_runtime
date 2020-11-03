@@ -24,12 +24,41 @@ defmodule Potato.DSL do
     broadcast
   end
 
+  def heartbeatTimer(time, program) do
+    :timer.sleep(time)
+    IO.puts("We have to die now")
+    Process.exit(program, :kill)
+  end
+
+  def actor(lease, programPid, heartPid) do
+    receive do
+      :refresh ->
+        Process.exit(heartPid, :kill)
+        actor(lease, programPid, spawn(fn -> heartbeatTimer(lease, programPid) end))
+    end
+  end
+
+  def make_heartbeat_listener(lease, programPid), do: spawn(fn -> actor(lease, programPid, spawn(fn -> heartbeatTimer(lease, programPid) end)) end)
+  def refresh(hbt), do: send(hbt, :refresh)
+
+  def createNewBody(lease, heartbeat, body) do
+    programPid = spawn(fn -> body.() end)
+
+    heartbeatTimer = make_heartbeat_listener(lease, programPid)
+        
+    heartbeat
+    |> Observables.Obs.filter(fn m -> m == :alive end)
+    |> Observables.Obs.each(fn _ -> refresh(heartbeatTimer) end)
+  end
+
   
   defmacro program(lease, after_life, do: body) do
     data = [lease: lease, after_life: after_life]
     quote do
-      body = unquote(body) #
       heartbeat = Observables.Subject.create()
+      lease = unquote(lease)
+
+      newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body)))
 
       Observables.Obs.range(0, :infinity, 450)
       |> Observables.Obs.map(fn _ ->
@@ -37,7 +66,7 @@ defmodule Potato.DSL do
       end)
 
       #{{unquote(lease), heartbeat}, fn -> unquote(body) end}
-      {{unquote(lease), heartbeat}, Macro.decompose_call(quote do: body)}
+      {{lease, heartbeat}, {__ENV__, [lease: lease, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}}
  
     end
   end
