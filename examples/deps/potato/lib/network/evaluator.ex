@@ -45,7 +45,7 @@ defmodule Potato.Network.Evaluator do
     Logger.debug("""
     Program evaluated
     ======================================
-    Result of evaluation: #{inspect(expanded)}
+    Result of evaluation: #{inspect(res)}
     ======================================
     """)
 
