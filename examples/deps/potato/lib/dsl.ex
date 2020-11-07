@@ -81,7 +81,7 @@ defmodule Potato.DSL do
 
         newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body), var!(kind)))
 
-        Observables.Obs.range(0, :infinity, 450)
+        Observables.Obs.range(0, :infinity, round(lease / 3))
         |> Observables.Obs.map(fn _ ->
           Observables.Subject.next(heartbeat, :alive)
         end)
