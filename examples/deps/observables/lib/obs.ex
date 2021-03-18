@@ -37,15 +37,20 @@ defmodule Observables.Obs do
 
   More information: http://reactivex.io/documentation/operators/from.html
   """
-  def from_enum(coll, delay \\ 1000) do
-    {:ok, pid} = GenObservable.start(FromEnum, [coll, delay])
-
-    Process.send_after(pid, {:event, :spit}, delay)
+  def from_enum(coll, delay, link \\ false) do
+    if link do
+      {:ok, pid} = GenObservable.start_link(FromEnum, [coll, delay])
+      Process.send_after(pid, {:event, :spit}, delay)
+      pid
+    else
+      {:ok, pid} = GenObservable.start(FromEnum, [coll, delay])
+      Process.send_after(pid, {:event, :spit}, delay)
+      pid
+    end
 
     # {fn observer ->
     #    GenObservable.send_to(pid, observer)
     #  end, pid}
-    pid
   end
 
   @doc """
@@ -55,12 +60,30 @@ defmodule Observables.Obs do
 
   More information: http://reactivex.io/documentation/operators/range.html
   """
-  def range(first, last, delay \\ 1000) do
-    {:ok, pid} = GenObservable.start(Range, [first, last, delay])
-
-    Process.send_after(pid, {:event, :tick}, delay)
-
-    pid
+  def range(first, last, opts \\ 1000) do
+    {delay, link} =  
+      if is_integer(opts) do
+        {opts, false}
+      else 
+        if is_boolean(opts) do
+          {1000, opts}
+        else
+        {Keyword.get(opts, :delay), Keyword.get(opts, :link)}
+        end
+      end
+    if link do
+      {:ok, pid} = GenObservable.start_link(Range, [first, last, delay])
+      Process.send_after(pid, {:event, :tick}, delay)
+      IO.puts("link")
+      IO.puts(delay)
+      pid
+    else
+      {:ok, pid} = GenObservable.start(Range, [first, last, delay])
+      Process.send_after(pid, {:event, :tick}, delay)
+      IO.puts("not linked")
+      IO.puts(delay)
+      pid
+    end
   end
 
   @doc """
@@ -163,13 +186,18 @@ defmodule Observables.Obs do
 
   More information: http://reactivex.io/documentation/operators/map.html
   """
-  def map(observable, f) do
-    {:ok, pid} = GenObservable.start(Map, [f])
-
-    GenObservable.send_to(observable, pid)
-
-    # Creat the continuation.
-    pid
+  def map(observable, f, link \\ false) do
+    if link do
+      {:ok, pid} = GenObservable.start_link(Map, [f])
+      GenObservable.send_to(observable, pid)
+      # Create the continuation
+      pid
+    else
+      {:ok, pid} = GenObservable.start(Map, [f])
+      GenObservable.send_to(observable, pid)
+      # Create the continuation
+      pid
+    end
   end
 
   @doc """
@@ -216,13 +244,18 @@ defmodule Observables.Obs do
 
   More information: http://reactivex.io/documentation/operators/subscribe.html
   """
-  def each(observable, f) do
-    {:ok, pid} = GenObservable.start(Each, [f])
-
-    GenObservable.send_to(observable, pid)
-
-    # Creat the continuation.
-    pid
+  def each(observable, f, link \\ false) do
+    if link do
+      {:ok, pid} = GenObservable.start_link(Each, [f])
+      GenObservable.send_to(observable, pid)
+      # Create the continuation
+      pid
+    else
+      {:ok, pid} = GenObservable.start(Each, [f])
+      GenObservable.send_to(observable, pid)
+      # Create the continuation
+      pid
+    end
   end
 
   @doc """
@@ -233,11 +266,18 @@ defmodule Observables.Obs do
 
   More information: http://reactivex.io/documentation/operators/filter.html
   """
-  def filter(observable, f) do
-    {:ok, pid} = GenObservable.start(Filter, [f])
-    GenObservable.send_to(observable, pid)
-    # Creat the continuation.
-    pid
+  def filter(observable, f, link \\ false) do
+    if link do
+      {:ok, pid} = GenObservable.start_link(Filter, [f])
+      GenObservable.send_to(observable, pid)
+      # Create the continuation.
+      pid
+    else
+      {:ok, pid} = GenObservable.start(Filter, [f])
+      GenObservable.send_to(observable, pid)
+      # Create the continuation.
+      pid
+    end
   end
 
   @doc """
