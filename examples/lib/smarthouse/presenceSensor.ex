@@ -54,12 +54,6 @@ defmodule Potato.Smarthouse.PresenceSensor do
     end
   end
 
-  def looop(n) do
-    IO.puts(n)
-    :timer.sleep(500)
-    looop(n + 1)
-  end
-
   def run() do
     init()
 
@@ -78,8 +72,8 @@ defmodule Potato.Smarthouse.PresenceSensor do
 
     sink = Observables.Subject.create()
 
-    prog = program 1000, :kill do
-        Obs.range(1, :infinity, 777)
+    prog = program 1000, :kill, :no_restart do
+        Obs.range(1, :infinity)
         |> Obs.map(fn _ ->
           Potato.Smarthouse.KeyReader.read_key()
         end, true)
@@ -87,30 +81,6 @@ defmodule Potato.Smarthouse.PresenceSensor do
           Subject.next(sink, v)
         end)
     end
-
-    #prog = program 1000, :kill do
-    #  looop(1)
-    #end
-
-    #test1 = spawn(fn -> looop(1) end)
-    #:timer.sleep(5000)
-    #Process.exit(test1, :kill)
-
-    #test2 = spawn(fn -> 
-    #  Obs.range(1, :infinity)
-    #  |> Obs.map2(fn x -> IO.puts(x) end)
-
-    #  Process.sleep(1100)
-    #end)
-    #:timer.sleep(5000)
-    #Process.exit(test2, :kill)
-
-    #test2 =
-    #  spawn(fn ->
-    #    Obs.range(1, :infinity)
-    #      |> Obs.map(fn x -> IO.puts(x) end)
-    #    Process.sleep(10 * 1000 * 60)
-    #  end)
 
     sink
     |> Obs.filter(fn {k, v} -> v == 1 end)

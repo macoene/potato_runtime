@@ -61,12 +61,12 @@ defmodule Potato.DSL do
   end
 
   
-  defmacro program(lease, after_life, do: body) do
-    data = [lease: lease, after_life: after_life]
+  defmacro program(lease, after_life, restart, do: body) do
+    data = [lease: lease, after_life: after_life, restart: restart]
     quote do
       heartbeat = Observables.Subject.create()
       lease = unquote(lease)
-
+      
       newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body)))
 
       Observables.Obs.range(0, :infinity, round(lease / 3))
