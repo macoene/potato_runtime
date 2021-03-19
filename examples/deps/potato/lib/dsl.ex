@@ -33,8 +33,9 @@ defmodule Potato.DSL do
   def actor(lease, programPid, heartPid) do
     receive do
       :refresh ->
+        Process.unlink(heartPid)
         Process.exit(heartPid, :kill)
-        actor(lease, programPid, spawn(fn -> heartbeatTimer(lease, programPid) end))
+        actor(lease, programPid, spawn_link(fn -> heartbeatTimer(lease, programPid) end))
     end
   end
 
@@ -46,7 +47,8 @@ defmodule Potato.DSL do
     end
   end
 
-  def make_heartbeat_listener(lease, programPid), do: spawn(fn -> actor(lease, programPid, spawn(fn -> heartbeatTimer(lease, programPid) end)) end)
+  def make_heartbeat_listener(lease, programPid), do: 
+    spawn(fn -> actor(lease, programPid, spawn_link(fn -> heartbeatTimer(lease, programPid) end)) end)
   def refresh(hbt), do: send(hbt, :refresh)
 
   def createNewBody(lease, heartbeat, body) do
@@ -57,7 +59,7 @@ defmodule Potato.DSL do
           
     heartbeat
     |> Observables.Obs.filter(fn m -> m == :alive end)
-    |> Observables.Obs.each(fn _ -> refresh(heartbeatTimer) end)
+    |> Observables.Obs.each(fn _ -> refresh(heartbeatTimer) end, true)
   end
 
   
