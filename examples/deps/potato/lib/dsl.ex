@@ -28,6 +28,7 @@ defmodule Potato.DSL do
     :timer.sleep(time)
     IO.puts("We have to die now")
     send(program, :stop)
+    #Process.exit(program, :kill)
   end
 
   def actor(lease, programPid, heartPid) do
@@ -38,14 +39,24 @@ defmodule Potato.DSL do
     end
   end
 
-  def program_runner(program, round_time) do
+  #def program_runner(program, round_time) do
+  #  receive do
+  #    :stop ->
+  #      Process.exit(self(), :kill)
+  #  after
+  #    round_time -> 
+  #      program.()
+  #      program_runner(program, round_time)
+  #  end
+  #end
+
+  def program_runner(program) do
+    runner = program.()
     receive do
       :stop ->
-        Process.exit(self(), :kill)
-    after
-      round_time -> 
-        program.()
-        program_runner(program, round_time)
+        Process.exit(runner, :kill)
+        #raise "We're stopping now."
+        #Process.exit(self(), :kill)
     end
   end
 
@@ -53,8 +64,10 @@ defmodule Potato.DSL do
   def make_heartbeat_listener(lease, programPid), do: spawn(fn -> actor(lease, programPid, spawn(fn -> heartbeatTimer(lease, programPid) end)) end)
   def refresh(hbt), do: send(hbt, :refresh)
 
-  def createNewBody(lease, heartbeat, body, {:loop, round_time}) do
-    programPid = spawn(fn -> program_runner(body, round_time) end)
+  #def createNewBody(lease, heartbeat, body, {:loop, round_time}) do
+  def createNewBody(lease, heartbeat, body) do
+    programPid = spawn(fn -> program_runner(body) end)
+    #programPid = body.()
 
     heartbeatTimer = make_heartbeat_listener(lease, programPid)
           
@@ -63,23 +76,24 @@ defmodule Potato.DSL do
     |> Observables.Obs.each(fn _ -> refresh(heartbeatTimer) end)
   end
 
-  def executeBody(body) do
-    body.()
-  end
+  #def executeBody(body) do
+  #  body.()
+  #end
 
   
   defmacro program(lease, after_life, do: body) do
     data = [lease: lease, after_life: after_life]
     quote do
-      {kind, body} = unquote(body)
-      if kind == :run_once do
-        newBody = quote(do: executeBody(var!(body)))
-        {{[], []}, {__ENV__, [body: body], newBody}}
-      else
+      #{kind, body} = unquote(body)
+      #if kind == :run_once do
+      #  newBody = quote(do: executeBody(var!(body)))
+      #  {{[], []}, {__ENV__, [body: body], newBody}}
+      #else
         heartbeat = Observables.Subject.create()
         lease = unquote(lease)
 
-        newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body), var!(kind)))
+        #newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body), var!(kind)))
+        newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body)))
 
         Observables.Obs.range(0, :infinity, round(lease / 3))
         |> Observables.Obs.map(fn _ ->
@@ -87,23 +101,24 @@ defmodule Potato.DSL do
         end)
 
         #{{unquote(lease), heartbeat}, fn -> unquote(body) end}
-        {{lease, heartbeat}, {__ENV__, [lease: lease, heartbeat: heartbeat, body: body, kind: kind], newBody}}
-      end
+        #{{lease, heartbeat}, {__ENV__, [lease: lease, heartbeat: heartbeat, body: body, kind: kind], newBody}}
+        {{lease, heartbeat}, {__ENV__, [lease: lease, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}}
+      #end
     end
   end
 
-  defmacro loop(round_time, do: body) do
-    data = [round_time: round_time]
-    quote do
-      {{:loop, unquote(round_time)}, fn -> unquote(body) end}
-    end
-  end
+  #defmacro loop(round_time, do: body) do
+  #  data = [round_time: round_time]
+  #  quote do
+  #    {{:loop, unquote(round_time)}, fn -> unquote(body) end}
+  #  end
+  #end
 
-  defmacro run_once(do: body) do
-    quote do
-      {:run_once, fn -> unquote(body) end}
-    end
-  end
+  #defmacro run_once(do: body) do
+  #  quote do
+  #    {:run_once, fn -> unquote(body) end}
+  #  end
+  #end
 
   @doc """
   msyelf() evaluates to the local node descriptor.
