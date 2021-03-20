@@ -79,7 +79,7 @@ defmodule Potato.DSL do
           Observables.Subject.next(heartbeat, :alive)
         end)
 
-        {{leasing_time, heartbeat}, {__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}}
+        {__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}
       end
     end
   end

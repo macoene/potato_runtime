@@ -15,7 +15,7 @@ defmodule Potato.Network.Evaluator do
     deployment_subject = Potato.Network.Observables.deployment()
 
     deployment_subject
-    |> Observables.Obs.map(fn {{lease, sender}, prog} -> 
+    |> Observables.Obs.map(fn prog -> 
       deploy_program(prog) end)
 
     {:ok, %{}}
