@@ -22,7 +22,7 @@ defmodule Potato.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:observables, git: "https://github.com/m1dnight/observables", branch: "master"}
+      {:observables, git: "https://github.com/macoene/observables", branch: "master"}
     ]
   end
 end
