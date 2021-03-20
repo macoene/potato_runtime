@@ -80,6 +80,10 @@ defmodule Potato.DSL do
         end)
 
         {__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}
+      else
+        if after_life == :keep_alive do
+          {__ENV__, [body: fn -> unquote(body) end], quote(do: var!(body).())}
+        end
       end
     end
   end
