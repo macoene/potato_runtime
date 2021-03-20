@@ -63,20 +63,24 @@ defmodule Potato.DSL do
   end
 
   
-  defmacro program(lease, after_life, restart, do: body) do
-    data = [lease: lease, after_life: after_life, restart: restart]
+  defmacro program(options, do: body) do
+    data = [options: options]
     quote do
-      heartbeat = Observables.Subject.create()
-      lease = unquote(lease)
+      options = unquote(options)
+      after_life = Keyword.get(options, :after_life)
+      if after_life == :kill do
+        heartbeat = Observables.Subject.create()
+        leasing_time = Keyword.get(options, :leasing_time)
       
-      newBody = quote(do: createNewBody(var!(lease), var!(heartbeat), var!(body)))
+        newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body)))
 
-      Observables.Obs.range(0, :infinity, round(lease / 3))
-      |> Observables.Obs.map(fn _ ->
-        Observables.Subject.next(heartbeat, :alive)
-      end)
+        Observables.Obs.range(0, :infinity, round(leasing_time / 3))
+        |> Observables.Obs.map(fn _ ->
+          Observables.Subject.next(heartbeat, :alive)
+        end)
 
-      {{lease, heartbeat}, {__ENV__, [lease: lease, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}}
+        {{leasing_time, heartbeat}, {__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}}
+      end
     end
   end
 
