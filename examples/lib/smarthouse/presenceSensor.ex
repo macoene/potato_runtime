@@ -18,7 +18,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
       hardware: :presenceSensor,
       type: :presenceSensor,
       name: "presence sensor",
-      uuid: ""
+      uuid: "1"
     }
 
     Potato.Network.Meta.set_local_nd(nd)
@@ -59,6 +59,10 @@ defmodule Potato.Smarthouse.PresenceSensor do
 
     presenceCounter = make_counter(0)
 
+    # Only necessary when we want to restart at reconnect without having to
+    # resend the program
+    connected_before = create_slave_node_database()
+
     joins = 
       Net.network()
       |> Obs.filter(&match?({:join, _}, &1))
@@ -72,7 +76,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
 
     sink = Observables.Subject.create()
 
-    prog = program [after_life: :keep_alive] do
+    prog = program [after_life: :kill, leasing_time: 1000, restart: connected_before] do
         Obs.range(1, :infinity)
         |> Obs.map(fn _ ->
           Potato.Smarthouse.KeyReader.read_key()
@@ -116,11 +120,8 @@ defmodule Potato.Smarthouse.PresenceSensor do
       end
     end)
 
-    joins
-    |> Obs.each(fn nd ->
-      nd.deploy
-      #|> Subject.next({"presence sensor", prog})
-      |> Subject.next(prog)
-    end)
+    # connected_before is an optional parameter that is only necessary when
+    # want to restart at reconnect without having to resend the program
+    send_program(prog, joins, connected_before)
   end
 end

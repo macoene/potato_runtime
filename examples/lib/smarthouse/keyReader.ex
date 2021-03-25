@@ -15,7 +15,7 @@ defmodule Potato.Smarthouse.KeyReader do
       hardware: :keyReader,
       type: :access,
       name: "key reader",
-      uuid: ""
+      uuid: "5"
     }
 
     Potato.Network.Meta.set_local_nd(nd)

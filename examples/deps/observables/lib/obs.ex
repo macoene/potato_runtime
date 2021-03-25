@@ -68,7 +68,7 @@ defmodule Observables.Obs do
         if is_boolean(opts) do
           {1000, opts}
         else
-          {Keyword.get(opts, :delay), Keyword.get(opts, :link)}
+        {Keyword.get(opts, :delay), Keyword.get(opts, :link)}
         end
       end
     if link do
