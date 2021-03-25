@@ -9,20 +9,20 @@ defmodule Potato.Smarthouse.KeyReader do
   enter and leave the house.
   """
 
-  def init() do
+  def init(id) do
     # Node descriptor
     nd = %{
       hardware: :keyReader,
       type: :access,
       name: "key reader",
-      uuid: "5"
+      uuid: id
     }
 
     Potato.Network.Meta.set_local_nd(nd)
   end
 
-  def run() do
-    init()
+  def run(id \\ 1) do
+    init(id)
   end
 
   def read_key() do

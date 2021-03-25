@@ -12,13 +12,13 @@ defmodule Potato.Smarthouse.PresenceSensor do
   if not, no one is home.
   """
 
-  def init() do
+  def init(id) do
     # Node descriptor
     nd = %{
       hardware: :presenceSensor,
       type: :presenceSensor,
       name: "presence sensor",
-      uuid: "1"
+      uuid: id
     }
 
     Potato.Network.Meta.set_local_nd(nd)
@@ -54,8 +54,8 @@ defmodule Potato.Smarthouse.PresenceSensor do
     end
   end
 
-  def run() do
-    init()
+  def run(id \\ 1) do
+    init(id)
 
     presenceCounter = make_counter(0)
 
