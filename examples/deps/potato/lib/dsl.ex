@@ -25,13 +25,11 @@ defmodule Potato.DSL do
     broadcast
   end
 
-  def heartbeatTimer(time, program, reconnect \\ false) do
+  def heartbeatTimer(time, program) do
     :timer.sleep(time)
     IO.puts("We have to die now")
     send(program, :stop)
-    if reconnect do
-      send(reconnect, :ended)
-    end
+    #Process.exit(program, :kill)
   end
 
   def actor(lease, programPid, heartPid) do
@@ -47,12 +45,12 @@ defmodule Potato.DSL do
     ourPid = self()
     receive do
       {:start, heartbeat} ->
-        programPid = spawn(fn -> program_runner(program, heartbeat, ourPid) end)
-        heartPid = spawn(fn -> heartbeatTimer(lease, programPid, ourPid) end)
+        programPid = spawn(fn -> program_runner(program, heartbeat, ourPid, lease) end)
+        heartPid = spawn(fn -> heartbeatTimer(lease, programPid) end)
         reconnect_actor(lease, programPid, heartPid, program)
       :refresh ->
         Process.exit(heartPid, :kill)
-        heartPid = spawn(fn -> heartbeatTimer(lease, programPid, ourPid) end)
+        heartPid = spawn(fn -> heartbeatTimer(lease, programPid) end)
         reconnect_actor(lease, programPid, heartPid, program)
     end
   end
@@ -82,11 +80,12 @@ defmodule Potato.DSL do
     end
   end
 
-  def program_runner(program, heartbeat, heartbeatTimer) do
+  def program_runner(program, heartbeat, heartbeatTimer, leasing_time) do
     runner = program.()
     heartbeat
       |> Observables.Obs.filter(fn m -> m == :alive end)
       |> Observables.Obs.each(fn _ -> refresh(heartbeatTimer) end, true)
+    
     receive do
       :stop ->
         Process.exit(runner, :kill)
@@ -113,10 +112,39 @@ defmodule Potato.DSL do
       heartbeat
       |> Observables.Obs.filter(fn m -> m == :alive end)
       |> Observables.Obs.each(fn _ -> refresh(heartbeatTimer) end, true)
+
+      Observables.Obs.range(0, :infinity, [delay: round(lease / 3), link: true])
+      |> Observables.Obs.map(fn _ ->
+        Observables.Subject.next(heartbeat, :alive_receiver)
+      end, true)
     end
   end
 
-  
+  def receiving_heartbeat(heartbeat_stopper, leasing_time) do
+    hs = Process.send_after(heartbeat_stopper, :stop, leasing_time)
+    receive do
+      :refresh ->
+        Process.cancel_timer(hs)
+        receiving_heartbeat(heartbeat_stopper, leasing_time)
+    end
+  end
+
+  def stop_heartbeat(hbs, hb, started \\ false) do
+    receive do
+      :stop ->
+        if started do
+          IO.puts("we stop")
+          Process.exit(hb, :kill)
+          send(hbs, :stop)
+          Process.exit(self(), :kill)
+        else
+          stop_heartbeat(hbs, hb)
+        end
+      :start ->
+        stop_heartbeat(hbs, hb, true)
+    end
+  end
+
   defmacro program(options, do: body) do
     data = [options: options]
     quote do
@@ -127,13 +155,32 @@ defmodule Potato.DSL do
         restart = Keyword.get(options, :restart)
 
         leasing_time = Keyword.get(options, :leasing_time)
+
+        IO.inspect(self(), label: "its mee")
       
-        Observables.Obs.range(0, :infinity, round(leasing_time / 3))
-        |> Observables.Obs.map(fn _ ->
-          Observables.Subject.next(heartbeat, :alive)
+        heartbeat_sender = spawn(fn -> 
+          Observables.Obs.range(0, :infinity, round(leasing_time / 3))
+          |> Observables.Obs.map(fn _ ->
+            Observables.Subject.next(heartbeat, :alive)
+          end, true)
+          receive do
+            :stop ->
+              Process.exit(self(), :kill) 
+          end
         end)
 
+        IO.inspect(heartbeat_sender, label: "sender")
+
         if (restart == :no_restart) or (restart == nil) do
+          heartbeat_stopper = spawn(fn -> stop_heartbeat(heartbeat_sender, heartbeat) end)
+
+          receiver_observer = spawn_link(fn -> receiving_heartbeat(heartbeat_stopper, leasing_time) end)
+
+          heartbeat
+            |> Observables.Obs.filter(fn m -> m == :alive_receiver end)
+            |> Observables.Obs.each(fn _ -> send(receiver_observer, :refresh) end, true)
+            |> Observables.Obs.each(fn _ -> send(heartbeat_stopper, :start) end)
+            
           newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body), false))
           {{__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}, nil}
         else
