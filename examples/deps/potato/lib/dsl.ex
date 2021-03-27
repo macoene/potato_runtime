@@ -146,15 +146,26 @@ defmodule Potato.DSL do
     end
   end
 
+  def write_nodes_to_file(nodes) do
+    File.rm("connected_before" <> "#{myself().uuid}" <> "#{myself().type}")
+    {_, file} = File.open("connected_before" <> "#{myself().uuid}" <> "#{myself().type}", [:write])
+    IO.write(file, "#{inspect nodes}")
+    File.close(file)
+  end
+
   def slave_nodes(nodes) do
     receive do
       {:store, type, address} ->
         addresses = Keyword.get(nodes, type)
         if addresses do
           new = [address | addresses]
-          slave_nodes(Keyword.replace(nodes, type, new))
+          new_nodes = Keyword.replace(nodes, type, new)
+          write_nodes_to_file(new_nodes)
+          slave_nodes(new_nodes)
         else
-          slave_nodes(Keyword.put_new(nodes, type, [address]))
+          new_nodes = Keyword.put_new(nodes, type, [address])
+          write_nodes_to_file(new_nodes)
+          slave_nodes(new_nodes)
         end
       {:check_presence, from, type, address} ->
         addresses = Keyword.get(nodes, type)
@@ -177,7 +188,13 @@ defmodule Potato.DSL do
   end
 
   def create_slave_node_database() do
-    spawn(fn -> slave_nodes([]) end)
+    {m, v} = File.read("connected_before" <> "#{myself().uuid}" <> "#{myself().type}")
+    if m == :error do
+      spawn(fn -> slave_nodes([]) end)
+    else
+      {nodes, _} = Code.eval_string(v)
+      spawn(fn -> slave_nodes(nodes) end)
+    end
   end
 
   def store_slave_node(db, type, address) do
