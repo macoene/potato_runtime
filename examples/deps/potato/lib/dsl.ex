@@ -27,9 +27,7 @@ defmodule Potato.DSL do
 
   def heartbeatTimer(time, program) do
     :timer.sleep(time)
-    IO.puts("We have to die now")
     send(program, :stop)
-    #Process.exit(program, :kill)
   end
 
   def actor(lease, programPid, heartPid) do
@@ -133,7 +131,6 @@ defmodule Potato.DSL do
     receive do
       :stop ->
         if started do
-          IO.puts("we stop")
           Process.exit(hb, :kill)
           send(hbs, :stop)
           Process.exit(self(), :kill)
@@ -155,8 +152,6 @@ defmodule Potato.DSL do
         restart = Keyword.get(options, :restart)
 
         leasing_time = Keyword.get(options, :leasing_time)
-
-        IO.inspect(self(), label: "its mee")
       
         heartbeat_sender = spawn(fn -> 
           Observables.Obs.range(0, :infinity, round(leasing_time / 3))
@@ -168,8 +163,6 @@ defmodule Potato.DSL do
               Process.exit(self(), :kill) 
           end
         end)
-
-        IO.inspect(heartbeat_sender, label: "sender")
 
         if (restart == :no_restart) or (restart == nil) do
           heartbeat_stopper = spawn(fn -> stop_heartbeat(heartbeat_sender, heartbeat) end)
