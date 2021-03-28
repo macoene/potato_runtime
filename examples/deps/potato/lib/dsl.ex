@@ -44,7 +44,8 @@ defmodule Potato.DSL do
   def reconnect_actor(lease, programPid, heartPid, program) do
     ourPid = self()
     receive do
-      {:start, heartbeat} ->
+      {:start, heartbeat, sinks} ->
+        link_sinks(sinks)
         programPid = spawn(fn -> program_runner(program, heartbeat, ourPid) end)
         heartPid = spawn(fn -> heartbeatTimer(lease, programPid) end)
         reconnect_actor(lease, programPid, heartPid, program)
@@ -66,10 +67,31 @@ defmodule Potato.DSL do
       |> Obs.filter(fn {m, _} ->
         m == myself().uuid 
       end)
-      |> Obs.each(fn {_, v} ->
-        send(reconnect_actor, {:start, v})
+      |> Obs.each(fn {_, {v, s}} ->
+        send(reconnect_actor, {:start, v, s})
       end)
     end)
+  end
+
+  def sinks_actor(sinks) do
+    receive do
+      {:add, {sink, name}} ->
+        if Keyword.get(sinks, name) do
+          new_sinks = Keyword.replace(sinks, name, sink)
+          sinks_actor(new_sinks)
+        else
+          new_sinks = Keyword.put_new(sinks, name, sink)
+          sinks_actor(new_sinks)
+        end
+      {:get, from, name} ->
+        res = Keyword.get(sinks, name)
+        send(from, res)
+        sinks_actor(sinks)
+    end
+  end
+
+  def new_sinks_register() do
+    spawn(fn -> sinks_actor([]) end)
   end
 
   def program_runner(program) do
@@ -98,16 +120,24 @@ defmodule Potato.DSL do
   def make_heartbeat_listener_reconnect(lease, body), do: 
     spawn(fn -> reconnect_actor(lease, nil, nil, body) end)
   def refresh(hbt), do: send(hbt, :refresh)
-  def start(hbt, heartbeat), do: send(hbt, {:start, heartbeat})
+  def start(hbt, heartbeat, sinks), do: send(hbt, {:start, heartbeat, sinks})
 
-  def createNewBody(lease, heartbeat, body, reconnect) do
+  def link_sinks(sinks) do
+    db = myself().sinks
+    Enum.each(sinks, fn s ->
+      send(db, {:add, s})
+    end)
+  end
+
+  def createNewBody(lease, heartbeat, body, reconnect, sinks) do
     if reconnect do
       heartbeatTimer = make_heartbeat_listener_reconnect(lease, body)
-      start(heartbeatTimer, heartbeat)
+      start(heartbeatTimer, heartbeat, sinks)
       wait_for_reconnect(reconnect, heartbeatTimer)
     else
       programPid = spawn(fn -> program_runner(body) end)
       heartbeatTimer = make_heartbeat_listener(lease, programPid)
+      link_sinks(sinks)
           
       heartbeat
       |> Obs.filter(fn m -> m == :alive end)
@@ -120,6 +150,7 @@ defmodule Potato.DSL do
     quote do
       options = unquote(options)
       after_life = Keyword.get(options, :after_life)
+      sinks = Keyword.get(options, :sinks)
       if after_life == :kill do
         heartbeat = Subject.create()
         restart = Keyword.get(options, :restart)
@@ -132,11 +163,11 @@ defmodule Potato.DSL do
         end)
 
         if (restart == :no_restart) or (restart == nil) do          
-          newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body), false))
-          {{__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}, nil}
+          newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body), false, var!(sinks)))
+          {{__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end, sinks: sinks], newBody}, nil}
         else
-          newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body), var!(sender)))
-          {{__ENV__, [leasing_time: leasing_time, sender: myself().uuid, heartbeat: heartbeat, body: fn -> unquote(body) end], newBody}, heartbeat}
+          newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body), var!(sender), var!(sinks)))
+          {{__ENV__, [leasing_time: leasing_time, sender: myself().uuid, heartbeat: heartbeat, body: fn -> unquote(body) end, sinks: sinks], newBody}, {heartbeat, sinks}}
         end
       else
         if after_life == :keep_alive do
@@ -228,6 +259,30 @@ defmodule Potato.DSL do
         end)
       end
     end
+  end
+
+  def get_sink(db, name) do
+    send(db, {:get, self(), name})
+    receive do
+      ans ->
+        ans
+    end
+  end
+
+  defmacro use_sink(name) do
+    data = [name: name]
+    quote do
+      name = unquote(name)
+      db = myself().sinks
+      res = get_sink(db, name)
+      res
+    end
+  end
+
+  def create_sink(name) do
+    regname = String.to_atom("#{myself().uuid}" <> "#{myself().type}:" <> name)
+    sink = Observables.Subject.create()
+    {sink, regname}
   end
 
   @doc """

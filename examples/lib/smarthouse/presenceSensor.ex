@@ -74,15 +74,15 @@ defmodule Potato.Smarthouse.PresenceSensor do
         Logger.debug("Joined Key Reader: #{inspect(nd)}")
       end)
 
-    sink = Observables.Subject.create()
+    {sink, sink_to_pass} = create_sink("sink")
 
-    prog = program [after_life: :kill, leasing_time: 1000, restart: connected_before] do
+    prog = program [after_life: :kill, leasing_time: 1000, sinks: [{sink, sink_to_pass}]] do
         Obs.range(1, :infinity)
         |> Obs.map(fn _ ->
           Potato.Smarthouse.KeyReader.read_key()
         end, true)
         |> Obs.map(fn v ->
-          Subject.next(sink, v)
+          Subject.next(use_sink(sink_to_pass), v)
         end)
     end
 
