@@ -167,7 +167,7 @@ defmodule Potato.DSL do
           {{__ENV__, [leasing_time: leasing_time, heartbeat: heartbeat, body: fn -> unquote(body) end, sinks: sinks], newBody}, nil}
         else
           newBody = quote(do: createNewBody(var!(leasing_time), var!(heartbeat), var!(body), var!(sender), var!(sinks)))
-          {{__ENV__, [leasing_time: leasing_time, sender: myself().uuid, heartbeat: heartbeat, body: fn -> unquote(body) end, sinks: sinks], newBody}, {heartbeat, sinks}}
+          {{__ENV__, [leasing_time: leasing_time, sender: myself().uuid, heartbeat: heartbeat, body: fn -> unquote(body) end, sinks: sinks], newBody}, {restart, heartbeat, sinks}}
         end
       else
         if after_life == :keep_alive do
@@ -243,8 +243,17 @@ defmodule Potato.DSL do
         joins
         |> Obs.each(fn nd ->
           if check_node_connected(connected_before, nd.type, nd.uuid) do
-            myself().broadcast
-            |> Subject.next({nd.uuid, heartbeat})
+            {restart, h, s} = heartbeat
+            if restart == :restart_and_new do
+              myself().broadcast
+              |> Subject.next({nd.uuid, {h, s}})
+
+              nd.deploy
+              |> Subject.next(program)
+            else
+              myself().broadcast
+              |> Subject.next({nd.uuid, {h, s}})
+            end
           else
             store_slave_node(connected_before, nd.type, nd.uuid)
             nd.deploy

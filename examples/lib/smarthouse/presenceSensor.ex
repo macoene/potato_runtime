@@ -76,7 +76,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
 
     {sink, sink_to_pass} = create_sink("sink")
 
-    prog = program [after_life: :kill, leasing_time: 1000, sinks: [{sink, sink_to_pass}]] do
+    prog = program [after_life: :kill, leasing_time: 1000, restart: :restart_and_new, sinks: [{sink, sink_to_pass}]] do
         Obs.range(1, :infinity)
         |> Obs.map(fn _ ->
           Potato.Smarthouse.KeyReader.read_key()
