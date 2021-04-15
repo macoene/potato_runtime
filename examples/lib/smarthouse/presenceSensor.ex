@@ -12,13 +12,13 @@ defmodule Potato.Smarthouse.PresenceSensor do
   if not, no one is home.
   """
 
-  def init(id) do
+  def init() do
     # Node descriptor
     nd = %{
       hardware: :presenceSensor,
       type: :presenceSensor,
       name: "presence sensor",
-      uuid: id
+      uuid: Node.self()
     }
 
     Potato.Network.Meta.set_local_nd(nd)
@@ -54,8 +54,8 @@ defmodule Potato.Smarthouse.PresenceSensor do
     end
   end
 
-  def run(id \\ 1) do
-    init(id)
+  def run() do
+    init()
 
     presenceCounter = make_counter(0)
 
@@ -76,7 +76,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
 
     {sink, sink_to_pass} = create_sink("sink")
 
-    prog = program [after_life: :kill, leasing_time: 1000, restart: :restart_and_new, sinks: [{sink, sink_to_pass}]] do
+    prog = program [after_life: :kill, leasing_time: 1000, restart: :restart, sinks: [{sink, sink_to_pass}]] do
         Obs.range(1, :infinity)
         |> Obs.map(fn _ ->
           Potato.Smarthouse.KeyReader.read_key()
