@@ -142,8 +142,8 @@ defmodule Potato.Santander.MainStorage do
       |> Obs.filter(fn {{t, _}, _} -> t == :spotSensor end)
       |> Obs.each(fn {{_, i}, v} -> 
         update(sensorStorage, i, v)
-        IO.puts(getTotal(sensorStorage))
-        IO.puts(getAvailable(sensorStorage))
+        spawn(fn -> IO.puts(getTotal(sensorStorage)) end)
+        spawn(fn -> IO.puts(getAvailable(sensorStorage)) end)
       end)
   
       send_program(prog, joins, connected_before)
