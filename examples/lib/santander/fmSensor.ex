@@ -28,6 +28,8 @@ defmodule Potato.Santander.FmSensor do
   
     def get_status() do
       # 0 means parking spot free, 1 means its taken
-      {Node.self(), Enum.random(0..1)}
+      status = Enum.random(0..1)
+      IO.puts(status)
+      {{myself().type, Node.self()}, status}
     end
   end
