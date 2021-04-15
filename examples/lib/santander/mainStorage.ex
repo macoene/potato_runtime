@@ -14,13 +14,13 @@ defmodule Potato.Santander.MainStorage do
     the average available parking spots.
     """
   
-    def init(id) do
+    def init() do
       # Node descriptor
       nd = %{
         hardware: :mainStorage,
         type: :mainStorage,
         name: "main storage",
-        uuid: id
+        uuid: Node.self()
       }
   
       Potato.Network.Meta.set_local_nd(nd)
@@ -108,8 +108,8 @@ defmodule Potato.Santander.MainStorage do
       spawn_link(fn -> trackAvgAvailableLoop(milliseconds, sink, storage, 0, 0) end)
     end
   
-    def run(id \\ 1) do
-      init(id)
+    def run() do
+      init()
   
       sensorStorage = create_storage()
 

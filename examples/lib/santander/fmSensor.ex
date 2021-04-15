@@ -9,21 +9,21 @@ defmodule Potato.Santander.FmSensor do
     spot to feel whether or not a car is parked on it.
     """
   
-    def init(id) do
+    def init() do
       # Node descriptor
       nd = %{
         hardware: :fmSensor,
         type: :spotSensor,
         name: "ferromagnetic wireless sensor",
-        uuid: id,
+        uuid: Node.self(),
         sinks: new_sinks_register()
       }
   
       Potato.Network.Meta.set_local_nd(nd)
     end
   
-    def run(id \\ 1) do
-      init(id)
+    def run() do
+      init()
     end
   
     def get_status() do
