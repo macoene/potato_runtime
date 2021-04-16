@@ -288,10 +288,15 @@ defmodule Potato.DSL do
     end
   end
 
-  def create_sink(name) do
+  # Creates a remote varaible, and sink by default
+  def create_remote_variable(name, new_sink \\ true) do
     regname = String.to_atom("#{myself().uuid}" <> "#{myself().type}:" <> name)
-    sink = Observables.Subject.create()
-    {sink, regname}
+    if new_sink do
+      sink = Observables.Subject.create()
+      {sink, regname}
+    else
+      {nil, regname}
+    end
   end
 
   @doc """
