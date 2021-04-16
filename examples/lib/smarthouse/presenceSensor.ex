@@ -74,7 +74,7 @@ defmodule Potato.Smarthouse.PresenceSensor do
         Logger.debug("Joined Key Reader: #{inspect(nd)}")
       end)
 
-    {sink, sink_to_pass} = create_sink("sink")
+    {sink, sink_to_pass} = create_remote_variable("sink")
 
     prog = program [after_life: :kill, leasing_time: 1000, restart: :restart, sinks: [{sink, sink_to_pass}]] do
         Obs.range(1, :infinity)

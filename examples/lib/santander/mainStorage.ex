@@ -100,7 +100,7 @@ defmodule Potato.Santander.MainStorage do
       currAvail = getAvailable(storage)
       newTotAvail = totAvail + currAvail
       res = newTotAvail / (totalTicks + 1)
-      Subject.next(use_sink(sink), res)
+      Subject.next(use_sink(sink), {:avg, res})
       trackAvgAvailableLoop(ms, sink, storage, totalTicks + 1, newTotAvail)
     end
 
@@ -127,7 +127,7 @@ defmodule Potato.Santander.MainStorage do
           Logger.debug("Joined FMSensor: #{inspect(nd)}")
         end)
   
-      {sink, sink_to_pass} = create_sink("main storage sink")
+      {sink, sink_to_pass} = create_remote_variable("main storage sink")
   
       prog = program [after_life: :kill, leasing_time: 1000, restart: :restart, sinks: [{sink, sink_to_pass}]] do
           Obs.range(1, :infinity)
@@ -148,5 +148,7 @@ defmodule Potato.Santander.MainStorage do
       end)
   
       send_program(prog, joins, connected_before)
+
+      sensorStorage
     end
   end
