@@ -16,7 +16,7 @@ defmodule Potato.Santander.SmartphoneMD do
       nd = %{
         hardware: :smartphone,
         type: :smartphoneMD,
-        name: "smartphone (for monitoring device",
+        name: "smartphone (for monitoring device)",
         uuid: Node.self()
       }
   
@@ -34,7 +34,7 @@ defmodule Potato.Santander.SmartphoneMD do
         end)
         |> Obs.map(&elem(&1, 1))
         |> Obs.each(fn nd ->
-          Logger.debug("Joined Key Reader: #{inspect(nd)}")
+          Logger.debug("Joined Monitor Device: #{inspect(nd)}")
         end)
 
       {sink, sink_to_pass} = create_remote_variable("smartphone sink")

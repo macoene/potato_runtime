@@ -31,13 +31,13 @@ defmodule Potato.Santander.ParkSensor do
       # From 0 (dry) to 100 very moistly
       status = Enum.random(0..100)
       IO.inspect(status, label: "Measured soil moisture")
-      {{myself().type, Node.self()}, status}
+      {{myself().type, :soil}, status}
     end
 
     def rain_status() do
         # From 0 (dry) to 5 
         status = Enum.random(0..5)
         IO.inspect(status, label: "Rain status")
-        {{myself().type, Node.self()}, status}
+        {{myself().type, :rain}, status}
     end
   end
