@@ -85,7 +85,7 @@ defmodule Potato.DSL do
         end
       {:get, from, name} ->
         res = Keyword.get(sinks, name)
-        send(from, res)
+        send(from, {:sink, res})
         sinks_actor(sinks)
     end
   end
@@ -215,6 +215,8 @@ defmodule Potato.DSL do
     receive do
       ans ->
         ans
+    after 1000 ->
+      check_node_connected(db, type, address)
     end
   end
 
@@ -241,7 +243,7 @@ defmodule Potato.DSL do
       {program, heartbeat} = prog
       if heartbeat do
         joins
-        |> Obs.each(fn nd ->
+        |> Obs.each(fn nd -> spawn(fn ->
           if check_node_connected(connected_before, nd.type, nd.uuid) do
             {restart, h, s} = heartbeat
             if restart == :restart_and_new do
@@ -259,7 +261,7 @@ defmodule Potato.DSL do
             nd.deploy
             |> Subject.next(program)
           end
-        end)
+        end) end)
       else
         joins
         |> Obs.each(fn nd ->
@@ -273,7 +275,7 @@ defmodule Potato.DSL do
   def get_sink(db, name) do
     send(db, {:get, self(), name})
     receive do
-      ans ->
+      {:sink, ans} ->
         ans
     end
   end

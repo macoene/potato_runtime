@@ -232,6 +232,10 @@ defmodule Observables.GenObservable do
     end
   end
 
+  def handle_info(true, state) do
+    {:noreply, state}
+  end
+
   def terminate(reason, _state) do
     Logger.debug "Terminating: #{inspect reason}"
     :ok
