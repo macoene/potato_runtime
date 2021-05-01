@@ -16,7 +16,8 @@ defmodule Potato.Santander.EnergyMetricsCollector do
         hardware: :energyMetricsCollector,
         type: :energyMetrics,
         name: "energy metrics collector",
-        uuid: Node.self()
+        uuid: Node.self(),
+        sndb: create_slave_node_database(:energyMetrics)
       }
   
       Potato.Network.Meta.set_local_nd(nd)

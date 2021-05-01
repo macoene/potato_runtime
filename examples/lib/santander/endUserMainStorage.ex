@@ -17,7 +17,8 @@ defmodule Potato.Santander.EndUserMainStorage do
         hardware: :endUserMainStorage,
         type: :endUserMainStorage,
         name: "end user application for the main storage",
-        uuid: Node.self()
+        uuid: Node.self(),
+        sndb: create_slave_node_database(:endUserMainStorage)
       }
   
       Potato.Network.Meta.set_local_nd(nd)
@@ -25,8 +26,6 @@ defmodule Potato.Santander.EndUserMainStorage do
   
     def run() do
       init()
-  
-      connected_before = create_slave_node_database()
   
       joins = 
         Net.network()
@@ -54,6 +53,6 @@ defmodule Potato.Santander.EndUserMainStorage do
         IO.puts(v)
       end)
   
-      send_program(prog, joins, connected_before)
+      send_program(prog, joins)
     end
   end

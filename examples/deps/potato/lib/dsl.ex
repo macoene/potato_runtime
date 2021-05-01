@@ -220,8 +220,8 @@ defmodule Potato.DSL do
     end
   end
 
-  def create_slave_node_database() do
-    {m, v} = File.read("connected_before" <> "#{myself().uuid}" <> "#{myself().type}")
+  def create_slave_node_database(type) do
+    {m, v} = File.read("connected_before" <> "#{Node.self()}" <> "#{type}")
     if m == :error do
       spawn(fn -> slave_nodes([]) end)
     else
@@ -234,11 +234,11 @@ defmodule Potato.DSL do
     send(db, {:store, type, address})
   end
 
-  defmacro send_program(prog, joins, connected_before \\ false) do
-    data = [joins: joins, connected_before: connected_before]
+  defmacro send_program(prog, joins) do
+    data = [joins: joins]
     quote do
       joins = unquote(joins)
-      connected_before = unquote(connected_before)
+      connected_before = myself().sndb
       prog = unquote(prog)
       {program, heartbeat} = prog
       if heartbeat do

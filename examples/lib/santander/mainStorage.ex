@@ -21,7 +21,8 @@ defmodule Potato.Santander.MainStorage do
         type: :mainStorage,
         name: "main storage",
         uuid: Node.self(),
-        sinks: new_sinks_register()
+        sinks: new_sinks_register(),
+        sndb: create_slave_node_database(:mainStorage)
       }
   
       Potato.Network.Meta.set_local_nd(nd)
@@ -113,8 +114,6 @@ defmodule Potato.Santander.MainStorage do
       init()
   
       sensorStorage = create_storage()
-
-      connected_before = create_slave_node_database()
   
       joins = 
         Net.network()
@@ -147,7 +146,7 @@ defmodule Potato.Santander.MainStorage do
         |> Observables.Subject.next({:available, getAvailable(sensorStorage)})
       end)
   
-      send_program(prog, joins, connected_before)
+      send_program(prog, joins)
 
       sensorStorage
     end

@@ -24,8 +24,6 @@ defmodule Potato.Santander.PublicDisplay do
   
     def run() do
       init()
-
-      connected_before = create_slave_node_database()
   
       joins = 
         Net.network()

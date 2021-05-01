@@ -18,7 +18,8 @@ defmodule Potato.Smarthouse.PresenceSensor do
       hardware: :presenceSensor,
       type: :presenceSensor,
       name: "presence sensor",
-      uuid: Node.self()
+      uuid: Node.self(),
+      sndb: create_slave_node_database(:presenceSensor)
     }
 
     Potato.Network.Meta.set_local_nd(nd)
@@ -58,10 +59,6 @@ defmodule Potato.Smarthouse.PresenceSensor do
     init()
 
     presenceCounter = make_counter(0)
-
-    # Only necessary when we want to restart at reconnect without having to
-    # resend the program
-    connected_before = create_slave_node_database()
 
     joins = 
       Net.network()
@@ -120,8 +117,6 @@ defmodule Potato.Smarthouse.PresenceSensor do
       end
     end)
 
-    # connected_before is an optional parameter that is only necessary when
-    # want to restart at reconnect without having to resend the program
-    send_program(prog, joins, connected_before)
+    send_program(prog, joins)
   end
 end

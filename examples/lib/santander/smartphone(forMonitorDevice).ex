@@ -17,7 +17,8 @@ defmodule Potato.Santander.SmartphoneMD do
         hardware: :smartphone,
         type: :smartphoneMD,
         name: "smartphone (for monitoring device)",
-        uuid: Node.self()
+        uuid: Node.self(),
+        sndb: create_slave_node_database(:smartphoneMD)
       }
   
       Potato.Network.Meta.set_local_nd(nd)

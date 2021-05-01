@@ -16,7 +16,8 @@ defmodule Potato.Santander.SmartphoneP do
         hardware: :smartphone,
         type: :smartphoneP,
         name: "smartphone (for park sensors)",
-        uuid: Node.self()
+        uuid: Node.self(),
+        sndb: create_slave_node_database(:smartphoneP)
       }
   
       Potato.Network.Meta.set_local_nd(nd)
@@ -26,8 +27,6 @@ defmodule Potato.Santander.SmartphoneP do
     # "restart and new" policy on the same local device
     def run(restart_number) do
       init()
-
-      connected_before = create_slave_node_database()
   
       joins = 
         Net.network()
@@ -79,9 +78,9 @@ defmodule Potato.Santander.SmartphoneP do
       end)
   
       if restart_number == 1 do
-        send_program(prog, joins, connected_before)
+        send_program(prog, joins)
       else
-        send_program(prog2, joins, connected_before)
+        send_program(prog2, joins)
       end
     end
   end
