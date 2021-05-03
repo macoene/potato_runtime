@@ -38,7 +38,6 @@ defmodule Potato.Network.Evaluator do
     #res = program.()
     expanded = Code.eval_quoted(program, vars, env)
     res = expanded |> elem(0)
-    #IO.inspect expanded
 
     Logger.debug("""
     Program evaluated

@@ -290,7 +290,7 @@ defmodule Potato.DSL do
     end
   end
 
-  # Creates a remote varaible, and sink by default
+  # Creates a remote variable, and sink by default
   def create_remote_variable(name, new_sink \\ true) do
     regname = String.to_atom("#{myself().uuid}" <> "#{myself().type}:" <> name)
     if new_sink do
